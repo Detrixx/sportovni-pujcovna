@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PujcovnaSportu.Models;
-using System.Security.Cryptography;
-using System.Text;
 
 public class AccountController : Controller
 {
@@ -89,10 +87,5 @@ public class AccountController : Controller
         return RedirectToAction("Login");
     }
 
-    private string HashHeslo(string heslo)
-    {
-        using var sha256 = SHA256.Create();
-        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(heslo));
-        return Convert.ToBase64String(bytes);
-    }
+    private string HashHeslo(string heslo) => HesloHelper.HashHeslo(heslo);
 }
