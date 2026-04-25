@@ -1,0 +1,166 @@
+﻿@model Vybaveni
+
+@{
+    ViewData["Title"] = "Upravit vybavení";
+}
+
+<h2>Upravit vybavení</h2>
+
+<div class="row">
+    <div class="col-md-6">
+
+        @if (ViewBag.Chyba != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Chyba</div>
+        }
+
+        <p class="text-muted"><span class="text-danger">*</span> Povinné pole</p>
+
+        <form method="post">
+            <div class="mb-3">
+                <label>Název <span class="text-danger">*</span></label>
+                <input type="text" name="Nazev" class="form-control" value="@Model.Nazev" required />
+            </div>
+            <div class="mb-3">
+                <label>Popis</label>
+                <textarea name="Popis" class="form-control">@Model.Popis</textarea>
+            </div>
+            <div class="mb-3">
+                <label>Cena za den (Kč) <span class="text-danger">*</span></label>
+                <input type="number" name="CenaZaDen" class="form-control" step="0.01" value="@Model.CenaZaDen" required />
+            </div>
+
+            <div class="mb-3">
+                <label>Typ vybavení <span class="text-danger">*</span></label>
+                <div style="max-height: 112px; overflow-y: auto; border: 1px solid #ced4da; border-radius: 4px; margin-bottom: 8px;">
+                    @foreach (var typ in ViewBag.Typy)
+                    {
+                        <div class="typ-option px-3 py-2 @(typ.IdTyp == Model.IdTyp ? "selected" : "")"
+                             style="cursor:pointer; border-bottom: 1px solid #f0f0f0; @(typ.IdTyp == Model.IdTyp ? "background-color:#cfe2ff; font-weight:500;" : "")"
+                             onclick="vyberTyp(@typ.IdTyp, '@typ.Nazev')">
+                            @typ.Nazev
+                        </div>
+                    }
+                </div>
+                <input type="hidden" name="IdTyp" id="idTypInput" value="@Model.IdTyp" />
+                <div id="vybranyTyp" class="mb-2">
+                   <strong id="vybranyTypNazev">@((ViewBag.Typy as List<TypVybaveni>)?.FirstOrDefault(t => t.IdTyp == Model.IdTyp)?.Nazev)</strong>
+                    <span style="cursor:pointer; color:#dc3545; margin-left:8px;" onclick="zrusitTyp()">✕ zrušit</span>
+                </div>
+                <div class="mt-2">
+                    <label style="font-size:13px; color:#6c757d;">Nebo přidej nový typ:</label>
+                    <input type="text" name="novyTyp" id="novyTypInput" class="form-control" placeholder="Název nového typu..." />
+                    <small class="text-muted">Pokud vyplníš nový typ, výběr výše se ignoruje.</small>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label>Stav vybavení <span class="text-danger">*</span></label>
+                <select name="IdStav" class="form-control">
+                    @foreach (var stav in ViewBag.Stavy)
+                    {
+
+                        @if (stav.IdStav == Model.IdStav)
+                    {
+                        <option value="@stav.IdStav" selected>@stav.Nazev</option>
+                    }
+                    else
+                    {
+                    <option value="@stav.IdStav">@stav.Nazev</option>
+                    }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label>URL obrázku</label>
+                <input type="text" name="ObrazekUrl" class="form-control" value="@Model.ObrazekUrl" placeholder="https://..." />
+            </div>
+
+            <hr />
+            <h5>Metadata <span class="text-muted" style="font-size:13px;">(nepovinné)</span></h5>
+            <p class="text-muted" style="font-size:13px;">Např. Délka: 180cm, Barva: červená</p>
+
+            <div id="metadataContainer"></div>
+
+            <button type="button" class="btn btn-outline-secondary btn-sm mb-3" onclick="pridatRadek()">
+                + Přidat další vlastnost
+            </button>
+
+            <input type="hidden" name="Metadata" id="metadataJson" />
+
+            <br />
+            <button type="submit" class="btn btn-primary" onclick="sestavMetadata()">Uložit změny</button>
+            <a href="/Vybaveni" class="btn btn-secondary">Zpět</a>
+        </form>
+    </div>
+</div>
+
+<style>
+    .typ-option:hover { background-color: #f0f7ff; }
+    .typ-option.selected { background-color: #cfe2ff; font-weight: 500; }
+</style>
+
+<script>
+    // Načti existující metadata
+    var existujiciMetadata = @Html.Raw(string.IsNullOrEmpty(Model.Metadata) ? "{}" : Model.Metadata);
+    
+    window.onload = function() {
+        for (var klic in existujiciMetadata) {
+            pridatRadekSHodnotou(klic, existujiciMetadata[klic]);
+        }
+        if (Object.keys(existujiciMetadata).length === 0) {
+            pridatRadek();
+        }
+    };
+
+    function pridatRadekSHodnotou(klic, hodnota) {
+        var container = document.getElementById('metadataContainer');
+        var radek = document.createElement('div');
+        radek.className = 'metadata-row row mb-2';
+        radek.innerHTML = `
+            <div class="col-5">
+                <input type="text" class="form-control meta-klic" placeholder="Vlastnost" value="${klic}" />
+            </div>
+            <div class="col-5">
+                <input type="text" class="form-control meta-hodnota" placeholder="Hodnota" value="${hodnota}" />
+            </div>
+            <div class="col-2">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.parentElement.parentElement.remove()">✕</button>
+            </div>
+        `;
+        container.appendChild(radek);
+    }
+
+    function pridatRadek() {
+        pridatRadekSHodnotou('', '');
+    }
+
+    function vyberTyp(id, nazev) {
+        document.getElementById('idTypInput').value = id;
+        document.getElementById('novyTypInput').value = '';
+        document.getElementById('vybranyTypNazev').innerText = nazev;
+        document.getElementById('vybranyTyp').style.display = 'block';
+        document.querySelectorAll('.typ-option').forEach(el => el.classList.remove('selected'));
+        event.currentTarget.classList.add('selected');
+    }
+
+    function zrusitTyp() {
+        document.getElementById('idTypInput').value = '';
+        document.getElementById('vybranyTyp').style.display = 'none';
+        document.querySelectorAll('.typ-option').forEach(el => el.classList.remove('selected'));
+    }
+
+    function sestavMetadata() {
+        var klice = document.querySelectorAll('.meta-klic');
+        var hodnoty = document.querySelectorAll('.meta-hodnota');
+        var metadata = {};
+        for (var i = 0; i < klice.length; i++) {
+            var k = klice[i].value.trim();
+            var h = hodnoty[i].value.trim();
+            if (k !== '' && h !== '') metadata[k] = h;
+        }
+        document.getElementById('metadataJson').value =
+            Object.keys(metadata).length > 0 ? JSON.stringify(metadata) : '';
+    }
+</script>

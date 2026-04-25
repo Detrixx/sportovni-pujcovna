@@ -1,0 +1,72 @@
+﻿@model IEnumerable<Vybaveni>
+
+@{
+    ViewData["Title"] = "Seznam vybavení";
+}
+
+@if (TempData["Uspech"] != null)
+{
+    <div class="alert alert-success">@TempData["Uspech"]</div>
+}
+<h2>Seznam vybavení</h2>
+
+@if (Context.Session.GetString("UzivatelRole") == "Admin")
+{
+    <a asp-action="Create" class="btn btn-success mb-3">+ Přidat vybavení</a>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Název</th>
+            <th>Typ</th>
+            <th>Stav</th>
+            <th>Cena za den</th>
+            @if (Context.Session.GetString("UzivatelRole") == "Admin")
+            {
+                <th></th>
+            }
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Nazev</td>
+                <td>@item.TypVybaveni?.Nazev</td>
+                <td>@item.StavVybaveni?.Nazev</td>
+                <td>@item.CenaZaDen Kč</td>
+                @if (Context.Session.GetString("UzivatelRole") == "Admin")
+                {
+                    <td>
+                        <a href="/Vybaveni/Edit/@item.IdVybaveni" class="btn btn-sm btn-warning">Upravit</a>
+                    </td>
+                }
+                @if (Context.Session.GetString("UzivatelRole") == "Uzivatel" && item.IdStav == 1)
+                {
+                    <td>
+                        <form method="post" asp-action="Rezervovat" style="display:inline;">
+                            <input type="hidden" name="idVybaveni" value="@item.IdVybaveni" />
+                            <input type="date" name="datumOd" class="form-control form-control-sm d-inline" style="width:140px;" required />
+                            <input type="date" name="datumDo" class="form-control form-control-sm d-inline" style="width:140px;" required />
+                            <button type="submit" class="btn btn-sm btn-success">Rezervovat</button>
+                        </form>
+                    </td>
+                }
+                else if (item.IdStav == 6)
+                {
+                    <td><span class="badge bg-warning text-dark">Rezervováno</span></td>
+                }
+                else if (item.IdStav != 1)
+                {
+                    <td><span class="badge bg-secondary">Nedostupné</span></td>
+                }
+                else
+                {
+                    <td></td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>

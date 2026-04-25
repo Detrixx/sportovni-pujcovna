@@ -1,0 +1,42 @@
+﻿@{
+    ViewData["Title"] = "Registrace";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <h2>Registrace</h2>
+
+        @if (ViewBag.Chyba != null)
+        {
+            <div class="alert alert-danger">@ViewBag.Chyba</div>
+        }
+
+        <form method="post">
+            <div class="mb-3">
+                <label>Jméno</label>
+                <input type="text" name="jmeno" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label>Příjmení</label>
+                <input type="text" name="prijmeni" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label>Email</label>
+                <input type="email" name="email" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label>Telefon</label>
+                <input type="text" name="telefon" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label>Heslo</label>
+                <input type="password" name="heslo" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Zaregistrovat se</button>
+        </form>
+
+        <p class="mt-3 text-center">
+            Už máš účet? <a asp-action="Login">Přihlásit se</a>
+        </p>
+    </div>
+</div>
